@@ -171,8 +171,8 @@ class MiddlewareConfig(
 
     # configs of vdb and vdb providers
     VectorStoreConfig,
-    ChromaConfig,
     AnalyticdbConfig,
+    ChromaConfig,
     MilvusConfig,
     OpenSearchConfig,
     OracleConfig,
