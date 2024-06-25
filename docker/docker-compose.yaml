@@ -167,6 +167,15 @@ services:
       CHROMA_DATABASE: default_database
       CHROMA_AUTH_PROVIDER: chromadb.auth.token_authn.TokenAuthClientProvider
       CHROMA_AUTH_CREDENTIALS: xxxxxx
+      # AnalyticDB configuration
+      ANALYTICDB_KEY_ID: your-ak
+      ANALYTICDB_KEY_SECRET: your-sk
+      ANALYTICDB_REGION_ID: cn-hangzhou
+      ANALYTICDB_INSTANCE_ID: gp-ab123456
+      ANALYTICDB_ACCOUNT: testaccount
+      ANALYTICDB_PASSWORD: testpassword
+      ANALYTICDB_NAMESPACE: dify
+      ANALYTICDB_NAMESPACE_PASSWORD: difypassword
       # Mail configuration, support: resend, smtp
       MAIL_TYPE: ''
       # default send from email address, if not specified
@@ -369,6 +378,15 @@ services:
       CHROMA_DATABASE: default_database
       CHROMA_AUTH_PROVIDER: chromadb.auth.token_authn.TokenAuthClientProvider
       CHROMA_AUTH_CREDENTIALS: xxxxxx
+      # AnalyticDB configuration
+      ANALYTICDB_KEY_ID: your-ak
+      ANALYTICDB_KEY_SECRET: your-sk
+      ANALYTICDB_REGION_ID: cn-hangzhou
+      ANALYTICDB_INSTANCE_ID: gp-ab123456
+      ANALYTICDB_ACCOUNT: testaccount
+      ANALYTICDB_PASSWORD: testpassword
+      ANALYTICDB_NAMESPACE: dify
+      ANALYTICDB_NAMESPACE_PASSWORD: difypassword
       # Notion import configuration, support public and internal
       NOTION_INTEGRATION_TYPE: public
       NOTION_CLIENT_SECRET: you-client-secret
