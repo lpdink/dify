@@ -2,7 +2,7 @@ version: '3'
 services:
   # API service
   api:
-    image: langgenius/dify-api:0.6.11
+    image: langgenius/dify-api:latest
     restart: always
     environment:
       # Startup mode, 'api' starts the API server.
@@ -43,11 +43,11 @@ services:
       MIGRATION_ENABLED: 'true'
       # The configurations of postgres database connection.
       # It is consistent with the configuration in the 'db' service below.
-      DB_USERNAME: postgres
-      DB_PASSWORD: difyai123456
-      DB_HOST: db
+      DB_USERNAME: CHANGE_HERE
+      DB_PASSWORD: CHANGE_HERE
+      DB_HOST: CHANGE_HERE
       DB_PORT: 5432
-      DB_DATABASE: dify
+      DB_DATABASE: CHANGE_HERE
       # The configurations of redis connection.
       # It is consistent with the configuration in the 'redis' service below.
       REDIS_HOST: redis
@@ -110,7 +110,7 @@ services:
       TENCENT_COS_REGION: 'your-region'
       TENCENT_COS_SCHEME: 'your-scheme'
       # The type of vector store to use. Supported values are `weaviate`, `qdrant`, `milvus`, `relyt`,`pgvector`, `chroma`, 'opensearch', 'tidb_vector'.
-      VECTOR_STORE: weaviate
+      VECTOR_STORE: analyticdb
       # The Weaviate endpoint URL. Only available when VECTOR_STORE is `weaviate`.
       WEAVIATE_ENDPOINT: http://weaviate:8080
       # The Weaviate API key.
@@ -168,14 +168,15 @@ services:
       CHROMA_AUTH_PROVIDER: chromadb.auth.token_authn.TokenAuthClientProvider
       CHROMA_AUTH_CREDENTIALS: xxxxxx
       # AnalyticDB configuration
-      ANALYTICDB_KEY_ID: your-ak
-      ANALYTICDB_KEY_SECRET: your-sk
-      ANALYTICDB_REGION_ID: cn-hangzhou
-      ANALYTICDB_INSTANCE_ID: gp-ab123456
-      ANALYTICDB_ACCOUNT: testaccount
-      ANALYTICDB_PASSWORD: testpassword
-      ANALYTICDB_NAMESPACE: dify
-      ANALYTICDB_NAMESPACE_PASSWORD: difypassword
+      
+      ANALYTICDB_KEY_ID: CHANGE_HERE
+      ANALYTICDB_KEY_SECRET: CHANGE_HERE
+      ANALYTICDB_REGION_ID: CHANGE_HERE
+      ANALYTICDB_INSTANCE_ID: CHANGE_HERE
+      ANALYTICDB_ACCOUNT: CHANGE_HERE
+      ANALYTICDB_PASSWORD: CHANGE_HERE
+      ANALYTICDB_NAMESPACE: CHANGE_HERE
+      ANALYTICDB_NAMESPACE_PASSWORD: CHANGE_HERE
       # Mail configuration, support: resend, smtp
       MAIL_TYPE: ''
       # default send from email address, if not specified
@@ -216,7 +217,6 @@ services:
       # Indexing configuration
       INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: 1000
     depends_on:
-      - db
       - redis
     volumes:
       # Mount the storage directory to the container, for storing user files.
@@ -231,7 +231,7 @@ services:
   # worker service
   # The Celery worker for processing the queue.
   worker:
-    image: langgenius/dify-api:0.6.11
+    image: langgenius/dify-api:latest
     restart: always
     environment:
       CONSOLE_WEB_URL: ''
@@ -247,11 +247,11 @@ services:
       SECRET_KEY: sk-9f73s3ljTXVcMT3Blb3ljTqtsKiGHXVcMT3BlbkFJLK7U
       # The configurations of postgres database connection.
       # It is consistent with the configuration in the 'db' service below.
-      DB_USERNAME: postgres
-      DB_PASSWORD: difyai123456
-      DB_HOST: db
+      DB_USERNAME: CHANGE_HERE
+      DB_PASSWORD: CHANGE_HERE
+      DB_HOST: CHANGE_HERE
       DB_PORT: 5432
-      DB_DATABASE: dify
+      DB_DATABASE: CHANGE_HERE
       # The configurations of redis cache connection.
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -294,7 +294,7 @@ services:
       TENCENT_COS_REGION: 'your-region'
       TENCENT_COS_SCHEME: 'your-scheme'
       # The type of vector store to use. Supported values are `weaviate`, `qdrant`, `milvus`, `relyt`, `pgvector`, `chroma`, 'opensearch', 'tidb_vector'.
-      VECTOR_STORE: weaviate
+      VECTOR_STORE: analyticdb
       # The Weaviate endpoint URL. Only available when VECTOR_STORE is `weaviate`.
       WEAVIATE_ENDPOINT: http://weaviate:8080
       # The Weaviate API key.
@@ -379,14 +379,14 @@ services:
       CHROMA_AUTH_PROVIDER: chromadb.auth.token_authn.TokenAuthClientProvider
       CHROMA_AUTH_CREDENTIALS: xxxxxx
       # AnalyticDB configuration
-      ANALYTICDB_KEY_ID: your-ak
-      ANALYTICDB_KEY_SECRET: your-sk
-      ANALYTICDB_REGION_ID: cn-hangzhou
-      ANALYTICDB_INSTANCE_ID: gp-ab123456
-      ANALYTICDB_ACCOUNT: testaccount
-      ANALYTICDB_PASSWORD: testpassword
-      ANALYTICDB_NAMESPACE: dify
-      ANALYTICDB_NAMESPACE_PASSWORD: difypassword
+      ANALYTICDB_KEY_ID: CHANGE_HERE
+      ANALYTICDB_KEY_SECRET: CHANGE_HERE
+      ANALYTICDB_REGION_ID: CHANGE_HERE
+      ANALYTICDB_INSTANCE_ID: CHANGE_HERE
+      ANALYTICDB_ACCOUNT: CHANGE_HERE
+      ANALYTICDB_PASSWORD: CHANGE_HERE
+      ANALYTICDB_NAMESPACE: CHANGE_HERE
+      ANALYTICDB_NAMESPACE_PASSWORD: CHANGE_HERE
       # Notion import configuration, support public and internal
       NOTION_INTEGRATION_TYPE: public
       NOTION_CLIENT_SECRET: you-client-secret
@@ -395,7 +395,6 @@ services:
       # Indexing configuration
       INDEXING_MAX_SEGMENTATION_TOKENS_LENGTH: 1000
     depends_on:
-      - db
       - redis
     volumes:
       # Mount the storage directory to the container, for storing user files.
@@ -422,32 +421,6 @@ services:
     # uncomment to expose dify-web port to host
     # ports:
     #   - "3000:3000"
-
-  # The postgres database.
-  db:
-    image: postgres:15-alpine
-    restart: always
-    environment:
-      PGUSER: postgres
-      # The password for the default postgres user.
-      POSTGRES_PASSWORD: difyai123456
-      # The name of the default postgres database.
-      POSTGRES_DB: dify
-      # postgres data directory
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - ./volumes/db/data:/var/lib/postgresql/data
-      # notice!: if you use windows-wsl2, postgres may not work properly due to the ntfs issue.you can use volumes to mount the data directory to the host.
-      # if you use the following config, you need to uncomment the volumes configuration below at the end of the file.
-      # - postgres:/var/lib/postgresql/data
-    # uncomment to expose db(postgresql) port to host
-    # ports:
-    #   - "5432:5432"
-    healthcheck:
-      test: [ "CMD", "pg_isready" ]
-      interval: 1s
-      timeout: 3s
-      retries: 30
 
   # The redis cache.
   redis:
