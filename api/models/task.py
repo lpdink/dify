@@ -10,7 +10,7 @@ class CeleryTask(db.Model):
 
     __tablename__ = 'celery_taskmeta'
     __table_args__=(
-        db.UniqueConstraint('id', 'task_id', name='id_task_id_unique')
+        db.UniqueConstraint('id', 'task_id', name='id_task_id_unique'),
     )
 
     id = db.Column(db.Integer, db.Sequence('task_id_sequence'),
@@ -34,7 +34,7 @@ class CeleryTaskSet(db.Model):
 
     __tablename__ = 'celery_tasksetmeta'
     __table_args__=(
-        db.UniqueConstraint('id', 'task_id', name='id_task_id_unique')
+        db.UniqueConstraint('id', 'task_id', name='id_task_id_unique'),
     )
 
     id = db.Column(db.Integer, db.Sequence('taskset_id_sequence'),
