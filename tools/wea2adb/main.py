@@ -2,9 +2,13 @@ import os
 from weaviate2adbpg import WeaviateVector, WeaviateConfig
 from adbpg import AnalyticdbConfig, AnalyticdbVector, build_documents
 
-# 这是dify使用WEAVIATE的默认配置，沿用了官方镜像时，不必修改。
-WEAVIATE_ENDPOINT = "http://127.0.0.1:8080"
-WEAVIATE_API_KEY = "WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih"
+WEAVIATE_ENDPOINT = os.environ.get("WEAVIATE_ENDPOINT")
+WEAVIATE_API_KEY = os.environ.get("WEAVIATE_API_KEY")
+DB_USERNAME = os.environ.get("DB_USERNAME")
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_HOST = os.environ.get("DB_HOST")
+DB_PORT = os.environ.get("DB_PORT")
+DB_DATABASE = os.environ.get("DB_DATABASE")
 
 # adbpg配置
 ADBPG_ACCESS_KEY_ID = os.environ.get("ADBPG_ACCESS_KEY_ID")
@@ -23,7 +27,7 @@ ADBPG_NAMESPACE_PASSWORD = os.environ.get("ADBPG_NAMESPACE_PASSWORD")
     - 只有在脚本执行因为网络等原因中断，导致集合创建，但是数据没有完整插入时使用，会删除掉adbpg中，与本地weaviate集合重名的数据集合。
     - 警告：如果要修改为True，请确保理解你在做什么，以免造成数据误删除。
 """
-ADBPG_DELETE_REMOTE_DUPLICATE_COLLECTION = False
+ADBPG_DELETE_REMOTE_DUPLICATE_COLLECTION = os.environ.get("ADBPG_DELETE_REMOTE_DUPLICATE_COLLECTION", False)
 
 def init_weaviate():
     config = WeaviateConfig(endpoint=WEAVIATE_ENDPOINT, api_key=WEAVIATE_API_KEY)
@@ -38,6 +42,42 @@ def init_adbpg():
     assert ADBPG_ACCESS_KEY_ID is not None, "expected to set adbpg account info, please config and source `adbpg_env.sh` "
     config = AnalyticdbConfig(access_key_id=ADBPG_ACCESS_KEY_ID, access_key_secret=ADBPG_ACCESS_KEY_SECRET, region_id=ADBPG_REGION_ID, instance_id=ADBPG_INSTANCE_ID, account=ADBPG_ACCOUNT, account_password=ADBPG_ACCOUNT_PASSWORD, namespace=ADBPG_NAMESPACE, namespace_password=ADBPG_NAMESPACE_PASSWORD)
     return AnalyticdbVector(config)
+
+def update_pg_datasets():
+    import psycopg2
+
+    conn_params = {
+        'dbname': DB_DATABASE,
+        'user': DB_USERNAME,
+        'password': DB_PASSWORD,
+        'host': DB_HOST,
+        'port': DB_PORT,
+    }
+
+    try:
+        conn = psycopg2.connect(**conn_params)
+        cursor = conn.cursor()
+        update_query = """
+        UPDATE datasets
+        SET index_struct = jsonb_set(index_struct::jsonb, '{type}', '"analyticdb"', false)
+        WHERE index_struct::jsonb ->> 'type' = 'weaviate';
+        """
+
+        cursor.execute(update_query)
+        conn.commit()
+
+        print("update pg datasets successfully.")
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 
 def _split_batch(data_list, batch_size=30):
     return [data_list[i:i + batch_size] for i in range(0, len(data_list), batch_size)]
@@ -69,6 +109,7 @@ def main():
             adbpg.add_texts(collection, batch)
         collection_idx+=1
     print("migration successfully.")
+    update_pg_datasets()
 
 if __name__=="__main__":
     main()

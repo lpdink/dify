@@ -1,14 +1,41 @@
 services:
+  migration:
+    image: wea2adb:latest
+    environment:
+      # adbpg config
+      ADBPG_ACCESS_KEY_ID: ${ADBPG_ACCESS_KEY_ID:-}
+      ADBPG_ACCESS_KEY_SECRET: ${ADBPG_ACCESS_KEY_SECRET:-}
+      ADBPG_REGION_ID: ${ADBPG_REGION_ID:-}
+      ADBPG_INSTANCE_ID: ${ADBPG_INSTANCE_ID:-}
+      ADBPG_ACCOUNT: ${ADBPG_ACCOUNT:-}
+      ADBPG_ACCOUNT_PASSWORD: ${ADBPG_ACCOUNT_PASSWORD:-}
+      ADBPG_NAMESPACE: ${ADBPG_NAMESPACE:-}
+      ADBPG_NAMESPACE_PASSWORD: ${ADBPG_NAMESPACE_PASSWORD:-}
+      ADBPG_DELETE_REMOTE_DUPLICATE_COLLECTION: ${ADBPG_DELETE_REMOTE_DUPLICATE_COLLECTION:-false}
+      # weaviate config
+      WEAVIATE_ENDPOINT: ${WEAVIATE_ENDPOINT:-http://weaviate:8080}
+      WEAVIATE_API_KEY: ${WEAVIATE_API_KEY:-WVF5YThaHlkYwhGUSmCRgsX3tD5ngdN8pkih}
+      # local pg config
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-difyai123456}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-dify}
+    depends_on:
+      - weaviate
+      - db
+    networks:
+      - bridge_net
+
   weaviate:
     image: semitechnologies/weaviate:1.19.0
     profiles:
       - ''
       - weaviate
     restart: always
-    network_mode: host
     volumes:
       # Mount the Weaviate data directory to the con tainer.
-      - ./weaviate:/var/lib/weaviate
+      - ./volumes/weaviate:/var/lib/weaviate
     environment:
       # The Weaviate configurations
       # You can refer to the [Weaviate](https://weaviate.io/developers/weaviate/config-refs/env-vars) documentation for more information.
@@ -22,3 +49,33 @@ services:
       AUTHENTICATION_APIKEY_USERS: ${WEAVIATE_AUTHENTICATION_APIKEY_USERS:-hello@dify.ai}
       AUTHORIZATION_ADMINLIST_ENABLED: ${WEAVIATE_AUTHORIZATION_ADMINLIST_ENABLED:-true}
       AUTHORIZATION_ADMINLIST_USERS: ${WEAVIATE_AUTHORIZATION_ADMINLIST_USERS:-hello@dify.ai}
+    networks:
+      - bridge_net
+
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      PGUSER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-difyai123456}
+      POSTGRES_DB: ${POSTGRES_DB:-dify}
+      PGDATA: ${PGDATA:-/var/lib/postgresql/data/pgdata}
+    command: >
+      postgres -c 'max_connections=${POSTGRES_MAX_CONNECTIONS:-100}'
+               -c 'shared_buffers=${POSTGRES_SHARED_BUFFERS:-128MB}'
+               -c 'work_mem=${POSTGRES_WORK_MEM:-4MB}'
+               -c 'maintenance_work_mem=${POSTGRES_MAINTENANCE_WORK_MEM:-64MB}'
+               -c 'effective_cache_size=${POSTGRES_EFFECTIVE_CACHE_SIZE:-4096MB}'
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    networks:
+      - bridge_net
+
+networks:
+  bridge_net:
+    driver: bridge
